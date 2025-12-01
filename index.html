@@ -7,79 +7,76 @@
 <style>
     body {
         margin: 0;
-        font-family: "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #4e54c8, #8f94fb);
-        height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #eef1f7;
         display: flex;
         justify-content: center;
         align-items: center;
+        height: 100vh;
     }
 
-    .container {
-        background: white;
+    .box {
+        background: #ffffff;
         width: 420px;
-        padding: 30px;
+        padding: 35px;
         border-radius: 14px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
 
     h2 {
-        margin-bottom: 18px;
-        color: #333;
+        margin-bottom: 20px;
+        color: #222;
     }
 
-    .upload-area {
-        border: 2px dashed #6c63ff;
-        padding: 35px 20px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: 0.3s;
-        background: #f8f9ff;
-    }
-
-    .upload-area:hover {
-        background: #eef0ff;
-    }
-
-    .upload-area p {
-        margin: 0;
-        font-size: 15px;
-        color: #444;
-    }
-
-    input[type="file"] {
+    #fileInput {
         display: none;
     }
 
-    button {
-        margin-top: 20px;
-        width: 100%;
-        background: #6c63ff;
+    .select-btn {
+        background: #4a6cf7;
         color: white;
-        padding: 12px;
-        border: none;
-        border-radius: 10px;
+        padding: 14px 25px;
+        font-size: 17px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 16px;
+        border: none;
+        display: inline-block;
+        margin-bottom: 15px;
         transition: 0.3s;
-        font-weight: bold;
     }
 
-    button:hover {
-        background: #554bf7;
+    .select-btn:hover {
+        background: #3656d4;
     }
 
-    #result {
-        margin-top: 25px;
-        background: #fafafa;
+    .upload-btn {
+        width: 100%;
+        background: #0abf5b;
+        color: white;
+        padding: 14px;
+        border-radius: 8px;
+        border: none;
+        font-size: 17px;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 10px;
+    }
+
+    .upload-btn:hover {
+        background: #099e4d;
+    }
+
+    .output {
+        margin-top: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
         padding: 18px;
-        border-radius: 10px;
-        max-height: 270px;
-        overflow-y: auto;
-        text-align: left;
         font-size: 14px;
+        max-height: 230px;
+        overflow-y: auto;
         border: 1px solid #ddd;
+        text-align: left;
         white-space: pre-wrap;
     }
 </style>
@@ -87,17 +84,17 @@
 </head>
 <body>
 
-<div class="container">
-    <h2>Clean Your CSV File</h2>
+<div class="box">
+    <h2>Data Cleaning Tool</h2>
 
-    <label class="upload-area" for="fileInput">
-        <p>📁 Select File From Device<br><small>(CSV Only)</small></p>
-    </label>
+    <label for="fileInput" class="select-btn">📁 Select File From Device</label>
     <input type="file" id="fileInput" accept=".csv">
 
-    <button onclick="uploadFile()">Upload & Clean</button>
+    <button class="upload-btn" onclick="uploadFile()">Upload & Clean</button>
 
-    <div id="result">Result output will appear here...</div>
+    <div class="output" id="result">
+        Waiting for file upload...
+    </div>
 </div>
 
 
@@ -106,7 +103,7 @@ async function uploadFile() {
     const fileInput = document.getElementById("fileInput");
 
     if (fileInput.files.length === 0) {
-        alert("Please select a file first!");
+        alert("Please select a CSV file first!");
         return;
     }
 
@@ -121,14 +118,26 @@ async function uploadFile() {
             body: formData
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            document.getElementById("result").textContent = "Error cleaning your file.";
+            return;
+        }
+
+        // Receive cleaned CSV file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // Auto-download cleaned file
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "cleaned_data.csv";
+        a.click();
 
         document.getElementById("result").textContent =
-            "📌 SUMMARY REPORT (JSON):\n\n" + data.summary_report +
-            "\n\n📌 CLEANED CSV DATA:\n\n" + data.cleaned_data;
+            "🎉 Cleaned CSV downloaded successfully!";
 
     } catch (error) {
-        document.getElementById("result").textContent = "❌ Error connecting to backend.\n" + error;
+        document.getElementById("result").textContent = "❌ Error: " + error;
     }
 }
 </script>
